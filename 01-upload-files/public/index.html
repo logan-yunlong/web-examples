@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<input type="file" id="btnFile">
+<input type="button" value="上传" onclick="upload()">
+<input type="button" value="分片上传" onclick="uploadMultiPart(0)">
+<script src="axios.js"></script>
+<script>
+    var btnFile = document.querySelector('#btnFile');
+
+    const chunkSize = 10 * 1024 * 1024; // 1MB
+    function upload() {
+        var file = btnFile.files[0];
+        var formData = new FormData();
+        formData.append('file', file);
+        axios.post('/upload', formData).then(() => {
+            console.log('upload success')
+        }).catch(e => {
+            console.error('e')
+        })
+
+    }
+
+    // 分块上传
+    function uploadMultiPart(index) {
+        var file = btnFile.files[0];
+        const [fname, fext] = file.name.split('.');
+
+        let start = index * chunkSize
+        if (start > file.size) {
+            merge(file.name)
+            return
+        }
+        ;
+        const blob = file.slice(start, start + chunkSize);
+        const blobName = `${fname}.${index}.${fext}`;
+        const blobFile = new File([blob], blobName);
+
+
+        const formData = new FormData();
+        formData.append('file', blobFile);
+        axios.post('/upload', formData).then((res) => {
+            console.log(res)
+            console.log('upload success')
+            uploadMultiPart(++index);
+        }).catch(e => {
+            console.error('e')
+        })
+    }
+    function merge(name){
+        axios.post('/merge', {name:name}).then((res) => {
+            console.log(res)
+        }).catch(e => {
+            console.error('e')
+        })
+    }
+</script>
+</body>
+</html>

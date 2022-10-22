@@ -1,0 +1,7 @@
+.idea
+node_modules
+temp
+.vscode
+*.lock
+*lock.json
+cache
